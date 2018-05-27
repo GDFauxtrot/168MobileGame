@@ -1,0 +1,142 @@
+﻿using UnityEngine;
+using UnityEngine.UI;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class BluetoothController : MonoBehaviour, IBtObserver {
+    
+    public GameObject chatMessagePrefab;
+
+    private Bluetooth bluetooth;
+
+    [SerializeField]
+    private BluetoothModel bluetoothModel;
+
+    [SerializeField]
+    private Dropdown deviceDropdown;
+
+    [SerializeField]
+    private Button searchButton;
+
+    [SerializeField]
+    private Button connectButton;
+
+    [SerializeField]
+    public Text bluetoothConnected;
+
+    [SerializeField]
+    private GameObject chatContent;
+
+    [SerializeField]
+    private Scrollbar chatScrollbar;
+
+    [SerializeField]
+    private InputField chatInputField;
+
+    [SerializeField]
+    private Button chatSendButton;
+
+    private void Awake() {
+        bluetooth = Bluetooth.getInstance();
+    }
+
+    private void Start() {
+        bluetoothModel.AddObserver(this);
+        deviceDropdown.ClearOptions();
+        deviceDropdown.AddOptions(new List<string>(new string[] { "none" }));
+        connectButton.interactable = false;
+
+        searchButton.onClick.AddListener(
+            () => {
+                bluetooth.SearchDevice();
+                bluetoothModel.clearMacAddresses();
+                connectButton.interactable = false;
+                deviceDropdown.ClearOptions();
+                deviceDropdown.AddOptions(new List<string>(new string[] { "..." }));
+            });
+
+        connectButton.onClick.AddListener(
+             () => {
+                 bluetooth.Connect(deviceDropdown.options[deviceDropdown.value].text);
+             });
+
+        chatSendButton.onClick.AddListener(
+            () => {
+                if (!chatInputField.text.Equals("") && bluetooth.IsConnected()) {
+                    string message = bluetooth.DeviceName() + ": " + chatInputField.text;
+                    // bluetoothConnected.text = bluetooth.Send(message);
+                    bluetoothConnected.text = SendMessageProper(message);
+
+
+                    GameObject chatMessage = Instantiate(chatMessagePrefab);
+                    chatMessage.GetComponent<Text>().text = message;
+                    chatMessage.transform.SetParent(chatContent.transform);
+                    
+                    chatInputField.text = "";
+                }
+            });
+    }
+
+    public string SendMessageProper(string message) {
+        return bluetooth.Send(BluetoothModel.STARTCHAR + message + BluetoothModel.ENDCHAR);
+    }
+    public string StripMessage(string message) {
+        if (message.StartsWith(BluetoothModel.STARTCHAR.ToString()) && message.EndsWith(BluetoothModel.ENDCHAR.ToString())) {
+            message = message.Remove(0,1);
+            message = message.Remove(message.Length-1,1);
+        }
+        return message;
+    }
+
+    public void OnStateChanged(string _State) {
+        switch (int.Parse(_State)) {
+            case 0:
+                bluetoothConnected.text = "Not Connected";
+                break;
+            case 1:
+                bluetoothConnected.text = "Connection Failed";
+                break;
+            case 2:
+                bluetoothConnected.text = "Connecting...";
+                break;
+            case 3:
+                bluetoothConnected.text = "Connected!";
+                break;
+            default:
+                bluetoothConnected.text = "Unknown State: " + _State;
+                break;
+        }
+        
+    }
+
+    public void OnSendMessage(string _Message) {
+        Debug.Log("Sending message: '" + _Message + "'");
+    }
+
+    public void OnGetMessage(string _Message) {
+        Debug.Log("Received message: '" + _Message + "'");
+
+        _Message = StripMessage(_Message);
+
+        GameObject chatMessage = Instantiate(chatMessagePrefab);
+        chatMessage.GetComponent<Text>().text = _Message;
+        chatMessage.transform.SetParent(chatContent.transform);
+        chatScrollbar.value = 1;
+    }
+
+    public void OnFoundNoDevice() {
+        deviceDropdown.ClearOptions();
+        deviceDropdown.AddOptions(new List<string>(new string[] { "none" }));
+    }
+
+    public void OnScanFinish() {
+    }
+
+    public void OnFoundDevice() {
+        // Clear and Get new List
+        connectButton.interactable = true;
+        deviceDropdown.ClearOptions();
+        deviceDropdown.AddOptions(bluetoothModel.macAddresses);
+    }
+}
