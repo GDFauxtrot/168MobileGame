@@ -13,19 +13,12 @@ public interface IBtObserver {
     void OnFoundDevice();
 }
 
-public abstract class BtObservable : MonoBehaviour {
-    protected List<IBtObserver> observerList;
-    public abstract void AddObserver(IBtObserver _btObserver);
-    public abstract void RemoveObserver(IBtObserver _btObserver);
-}
+public class BluetoothModel : MonoBehaviour {
 
-public class BluetoothModel : BtObservable {
+    List<IBtObserver> observerList;
 
-    [SerializeField]
     private int bufferSize = 256;
-    [SerializeField]
     public const char STARTCHAR = '$';
-    [SerializeField]
     public const char ENDCHAR = '#';
 
     public List<string> macAddresses = null;
@@ -38,6 +31,9 @@ public class BluetoothModel : BtObservable {
         macAddresses = new List<string>();
         messageQueue = new Queue<string>();
         rawMessage = new StringBuilder(bufferSize);
+
+        // Tell the GM we exist (safe to do in Awake w/ modified script execution order)
+        GameManager.instance.SetBluetoothModel(this);
     }
 
     public void clearMacAddresses() {
@@ -76,11 +72,11 @@ public class BluetoothModel : BtObservable {
     //             Pattern Method
     // ========================================
 
-    public override void AddObserver(IBtObserver _btObserver) {
+    public void AddObserver(IBtObserver _btObserver) {
         observerList.Add(_btObserver);
     }
 
-    public override void RemoveObserver(IBtObserver _btObserver) {
+    public void RemoveObserver(IBtObserver _btObserver) {
         if (observerList.Contains(_btObserver)) {
             observerList.Remove(_btObserver);
         }

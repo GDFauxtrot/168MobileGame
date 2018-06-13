@@ -10,35 +10,26 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
 
     private Bluetooth bluetooth;
 
-    [SerializeField]
     private BluetoothModel bluetoothModel;
 
-    [SerializeField]
     private Dropdown deviceDropdown;
 
-    [SerializeField]
     private Button searchButton;
 
-    [SerializeField]
     private Button connectButton;
 
-    [SerializeField]
     public Text bluetoothConnected;
 
-    [SerializeField]
     private GameObject chatContent;
 
-    [SerializeField]
     private Scrollbar chatScrollbar;
 
-    [SerializeField]
     private InputField chatInputField;
 
-    [SerializeField]
     private Button chatSendButton;
 
     private void Awake() {
-        bluetooth = Bluetooth.getInstance();
+        bluetooth = Bluetooth.GetInstance();
     }
 
     private void Start() {

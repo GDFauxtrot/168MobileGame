@@ -11,16 +11,25 @@ using System.Collections.Generic;
 
 public class Bluetooth {
 
-    private AndroidJavaClass _plugin;
-    private AndroidJavaObject _activityObject;
+    private AndroidJavaClass plugin;
+    private AndroidJavaObject activityObject;
     private static Bluetooth instance;
 
+    // Use to determine if we're on Android or not (testing on PC good -- pushing APK to Android dozens of times bad)
+    public static bool connectedToAndroid = true;
+
     private Bluetooth() {}
-    public static Bluetooth getInstance() {
+    public static Bluetooth GetInstance() {
         if(instance == null) {
             instance = new Bluetooth();
-            instance.PluginStart();
-            instance.Discoverable();
+            try {
+                instance.PluginStart();
+                instance.Discoverable();
+                connectedToAndroid = true;
+            } catch (Exception) {
+                Debug.LogWarning("WARNING: Android environment not found! If it's supposed to (i.e. not testing/debugging), something terrible happened!");
+                connectedToAndroid = false;
+            }
         }
         return instance;
     }
@@ -30,58 +39,57 @@ public class Bluetooth {
     // ========================================
 
     private void PluginStart() {
-	    _plugin = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-        _activityObject = _plugin.GetStatic<AndroidJavaObject>("currentActivity");
-        Debug.Log(_activityObject);
-        _activityObject.Call("StartPlugin");
+        plugin = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        activityObject = plugin.GetStatic<AndroidJavaObject>("currentActivity");
+        activityObject.Call("StartPlugin");
     }
 
     public string Send(string message) {
-        return _activityObject.Call<string>("sendMessage", message);
+        return activityObject.Call<string>("SendMessage", message);
     }
 
     public string SearchDevice() {
        Debug.Log("unity -> android | SearchDevice");
-       return _activityObject.Call<string>("ScanDevice");       
+       return activityObject.Call<string>("ScanDevice");       
     }
 
     public string GetDeviceConnectedName() {
-       return _activityObject.Call<string>("GetDeviceConnectedName");
+       return activityObject.Call<string>("GetDeviceConnectedName");
     }
 
     public string Discoverable() {
-        return _activityObject.Call<string>("ensureDiscoverable");
+        return activityObject.Call<string>("EnsureDiscoverable");
     }
 
-    public void Connect(string Address) {
-        _activityObject.Call("Connect", Address);
+    public void Connect(string address) {
+        activityObject.Call("Connect", address);
     }
 
     public string EnableBluetooth() {
-        return _activityObject.Call<string>("BluetoothEnable");
+        return activityObject.Call<string>("BluetoothEnable");
     }
 
     public string DisableBluetooth() {
-        return _activityObject.Call<string>("DisableBluetooth");
+        return activityObject.Call<string>("DisableBluetooth");
     }
 
     public string DeviceName() {
-        return _activityObject.Call<string>("DeviceName");
+        return activityObject.Call<string>("DeviceName");
     }
 
     public bool IsEnabled() {
-        return _activityObject.Call<bool>("IsEnabled");
+        return activityObject.Call<bool>("IsEnabled");
     }
 
     public bool IsConnected() {
-        return _activityObject.Call<bool>("IsConnected");
+        return activityObject.Call<bool>("IsConnected");
     }
 
 	public void Stop() {
-		_activityObject.Call("stopThread");
+		activityObject.Call("StopThread");
 	}
 
-	public void showMessage(string mes) {
-		_activityObject.Call("showMessage",mes);
+	public void ShowMessage(string message) {
+		activityObject.Call("ShowMessage", message);
 	}
 }
