@@ -34,16 +34,11 @@ public class PlayerController : MonoBehaviour {
         
     }
 
-    void Start() {
-
-    }
-    
     void Update() {
         if (Bluetooth.connectedToAndroid) {
             // Get tap
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) {
                 DoJump();
-                // rb.AddForce(Vector2.up * jumpSpeed);
             } else if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) {
                 // Midair jump stop (it's wrong NOT to have it)
                 if (velocity.y > midairStopVelocity) {
@@ -54,7 +49,6 @@ public class PlayerController : MonoBehaviour {
             // Get spacebar
             if (Input.GetKeyDown(KeyCode.Space)) {
                 DoJump();
-                // rb.AddForce(Vector2.up * jumpSpeed);
             } else if (Input.GetKeyUp(KeyCode.Space)) {
                 // Midair jump stop (it's wrong NOT to have it)
                 if (velocity.y > midairStopVelocity) {
@@ -70,9 +64,7 @@ public class PlayerController : MonoBehaviour {
             velocity.x = 0f;
         }
 
-        // Do physics and position updates after inputs are handled
-        //DoPhysicsUpdate();
-        // Check collisions resulting from physics & inputs
+        // Do the physics and check the resulting collisions
         CheckCollisions();
     }
 
@@ -87,10 +79,6 @@ public class PlayerController : MonoBehaviour {
         velocity.y = jumpSpeed;
     }
 
-    void DoPhysicsUpdate() {
-        
-    }
-
     void CheckCollisions() {
 
         // Apply gravity (vf = vi + a*t)
@@ -98,7 +86,6 @@ public class PlayerController : MonoBehaviour {
             velocity.y += acceleration.y*Time.deltaTime;
         
         // IMPORTANT: THIS is the main position update before collisions happen
-        // (TODO?: use a "truePosition" V3 and "truePosition = transform.position" after collisions)
         transform.position = new Vector3(
             transform.position.x + velocity.x*Time.deltaTime,
             transform.position.y + velocity.y*Time.deltaTime,
@@ -112,7 +99,6 @@ public class PlayerController : MonoBehaviour {
 
         do {
             Collider2D[] cols = Physics2D.OverlapBoxAll(transform.position, ourBox.bounds.size, 0f, collisionLayers.value);
-            
 
             // Right on first iteration, check if we walked off a ledge and get out soon if so
             if (collisionIteration == 0 && cols.Length == 0 && grounded) {
@@ -238,79 +224,5 @@ public class PlayerController : MonoBehaviour {
         if (collisionIteration >= COLLISION_MAX_ITERATIONS) {
             Debug.Log("DONE WITH COLLISION - EXCEEDED ITERATIONS!");
         }
-        /*
-        // Get all currently colliding blocks
-        Collider2D[] cols = Physics2D.OverlapBoxAll(transform.position, ourBox.bounds.size, 0f, collisionLayers.value);
-
-        // Sort by nearest blocks to make sure the nearest collisions are done first
-        System.Array.Sort(cols,
-            delegate (Collider2D hit1, Collider2D hit2) {
-                return Vector2.Distance(transform.position, hit1.transform.position).CompareTo(
-                    Vector2.Distance(transform.position, hit2.transform.position));
-            });
-
-        // Go through each block and check for collisions
-        foreach (Collider2D col in cols) {
-
-            // Setting up some data
-            Vector2 ourMin = ourBox.bounds.min;
-            Vector2 ourMax = ourBox.bounds.max;
-            Vector2 theirMin = col.bounds.min;
-            Vector2 theirMax = col.bounds.max;
-            float displacementBottom = theirMax.y - ourMin.y;
-            float displacementTop = ourMax.y - theirMin.y;
-            float displacementLeft = theirMax.x - ourMin.x;
-            float displacementRight = ourMax.x - theirMin.x;
-
-            // Min each side's displacement. The smallest one is main collision side for this block on this frame.
-            float min = Mathf.Min(displacementBottom, displacementTop, displacementLeft, displacementRight);
-            
-            if (min == displacementLeft) {
-                // PLAYER COL - LEFT
-                Debug.Log(Time.timeSinceLevelLoad + ": LEFT " + displacementBottom + " " + displacementTop + " " + displacementLeft + " " + displacementRight);
-                if (displacementBottom + velocity.y < 0 && cols.Length == 1 && displacementLeft != 0f) {
-                    // Certain-distanced falls will result in what SHOULD be a bottom collision actually looking like a
-                    // side collision when landing on a block edge. This condition seems to be the solution,
-                    // though I'm willing to bet it will create problems later on.
-                    velocity.y = 0f;
-                    grounded = true;
-                    transform.position = new Vector3(transform.position.x, transform.position.y + displacementBottom, transform.position.z);
-                } else {
-                    // Handle side collision normally
-                    transform.position = new Vector3(transform.position.x + displacementLeft, transform.position.y, transform.position.z);
-                }
-
-            } else if (min == displacementRight) {
-                // PLAYER COL - RIGHT
-                Debug.Log(Time.timeSinceLevelLoad + ": RIGHT " + displacementBottom + " " + displacementTop + " " + displacementLeft + " " + displacementRight);
-                if (displacementBottom + velocity.y < 0 && cols.Length == 1 && displacementRight != 0f) {
-                    // Same deal as displacementLeft
-                    velocity.y = 0f;
-                    grounded = true;
-                    transform.position = new Vector3(transform.position.x, transform.position.y + displacementBottom, transform.position.z);
-                } else {
-                    // Handle side collision normally
-                    transform.position = new Vector3(transform.position.x - displacementRight, transform.position.y, transform.position.z);
-                }
-
-            } else if (min == displacementTop) {
-                // PLAYER COL - TOP
-                Debug.Log(Time.timeSinceLevelLoad + ": TOP " + displacementBottom + " " + displacementTop + " " + displacementLeft + " " + displacementRight);
-                if (!grounded && velocity.y > 0f) {
-                    velocity.y = 0f;
-                    transform.position = new Vector3(transform.position.x, transform.position.y - displacementTop, transform.position.z);
-                }
-
-            } else if (min == displacementBottom) {
-                // PLAYER COL - BOTTOM
-                Debug.Log(Time.timeSinceLevelLoad + ": BOTTOM " + displacementBottom + " " + displacementTop + " " + displacementLeft + " " + displacementRight);
-                if (!grounded && velocity.y < 0f) {
-                    velocity.y = 0f;
-                    grounded = true;
-                    transform.position = new Vector3(transform.position.x, transform.position.y + displacementBottom, transform.position.z);
-                }
-            }
-        }
-        */
     }
 }
