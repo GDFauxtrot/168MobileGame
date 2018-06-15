@@ -73,9 +73,11 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     // Interfaces we care about
     public void OnGetMessage(string _Message) {
-    // ok cool
+        _Message = StripMessage(_Message);
         // other player is jumping, need to maybe set it so that the playercontroller has a bool looking at this
         List<object> m = MessageParser.ParseMessage(_Message);
+
+        
 
         string type = (string) m[0];
         
@@ -116,5 +118,12 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     public string SendMessageProper(string message) {
         return bt.Send(BluetoothModel.STARTCHAR + message + BluetoothModel.ENDCHAR);
+    }
+    public string StripMessage(string message) {
+        if (message.StartsWith(BluetoothModel.STARTCHAR.ToString()) && message.EndsWith(BluetoothModel.ENDCHAR.ToString())) {
+            message = message.Remove(0,1);
+            message = message.Remove(message.Length-1,1);
+        }
+        return message;
     }
 }
