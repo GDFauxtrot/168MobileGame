@@ -90,6 +90,9 @@ public class BluetoothModel : MonoBehaviour {
             observerList.Remove(_btObserver);
         }
     }
+    public bool IsInObserverList(IBtObserver btObserver) {
+        return observerList.Contains(btObserver);
+    }
 
     // ========================================
     //    Receive Bluetooth Call Back Method

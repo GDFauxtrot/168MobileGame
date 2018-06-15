@@ -18,9 +18,9 @@ public static class MessageParser {
             messageContents.Add(float.Parse(pos[1]));
             messageContents.Add(float.Parse(pos[2]));
         }
-        if (messages[0] == "T") {
+        if (messages[0] == "start") {
             messageContents.Add(messages[0]);
-            messageContents.Add(float.Parse(messages[1]));
+            messageContents.Add(System.TimeSpan.Parse(messages[1]));
         }
         if (messages[0] == "block") {
             messageContents.Add(messages[0]);

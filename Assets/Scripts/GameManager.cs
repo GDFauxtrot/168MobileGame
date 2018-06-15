@@ -21,7 +21,6 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     public PlayerType playerType;
 
-    bool btAddedObserver;
     void Awake() {
         // This is a SingleTON of stuff
         if (instance != null && instance != this) {
@@ -36,21 +35,17 @@ public class GameManager : MonoBehaviour, IBtObserver {
     }
 
     public void ActiveSceneChanged(Scene current, Scene next) {
-        if (next == SceneManager.GetSceneByBuildIndex(1)) { // elegant af
-            blockManager.generateGroundAheadOfPlayer = true;
-            btModel.AddObserver(this);
-            btAddedObserver = true;
+        if (btModel != null) {
+            if (next == SceneManager.GetSceneByBuildIndex(1)) { // elegant af
+                blockManager.generateGroundAheadOfPlayer = true;
+            }
+            if (!btModel.IsInObserverList(this)) {
+                btModel.AddObserver(this);
+            }
+        } else {
+            
         }
-    }
-
-    void Start() {
-        //if (!btAddedObserver) {
-        //    Debug.Log("OBSERVER ADDED");
-        //    btModel.AddObserver(this);
-        //    btAddedObserver = true;
-        //}
         
-        //blockManager.generateGroundAheadOfPlayer = true;
     }
 
     // Trying a different approach for GM systems that require being a GameObject component eliminating .Find() - 

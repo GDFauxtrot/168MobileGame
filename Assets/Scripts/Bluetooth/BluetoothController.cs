@@ -29,10 +29,12 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
 
     public Button chatSendButton;
 
-    private float HandShakeTime;
+    private TimeSpan handshakeTime;
+    private DateTime startTime;
 
     private void Awake() {
         bluetooth = Bluetooth.GetInstance();
+        startTime = System.DateTime.Now;
     }
 
     private void Start() {
@@ -103,9 +105,8 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
         }
         
         if (int.Parse(_State) == 3) {
-            // Connected - tell both sides to switch scenes, pick a role and begin play
-            SendMessageProper("T:"+Time.realtimeSinceStartup);
-            HandShakeTime=Time.realtimeSinceStartup;
+            SendMessageProper("start:" + (DateTime.Now - startTime));
+            handshakeTime = DateTime.Now - startTime;
         }
     }
 
@@ -118,21 +119,23 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
 
         _Message = StripMessage(_Message);
 
-
-        // might be fucked until tested
         List<object> message = MessageParser.ParseMessage(_Message);
+
         string type = (string) message[0];
 
-        if(type == "T")
+        if(type == "start")
         {
-            float time = (float) message[1];
-            if(HandShakeTime >= time)
+            TimeSpan theirTime = (TimeSpan) message[1];
+
+            if(handshakeTime > theirTime)
             {
                 GameManager.instance.playerType = PlayerType.Runner;
             }
-            else
+            else if (handshakeTime < theirTime)
             {
                 GameManager.instance.playerType = PlayerType.Blocker;
+            } else {
+                Application.Quit(); // fuck it, there's no way in hell
             }
 
             SceneManager.LoadScene(1);
