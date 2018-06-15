@@ -125,6 +125,7 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
 
         if(type == "T")
         {
+            Debug.LogWarning("Thing did the thing");
             float time = (float) message[1];
             if(HandShakeTime >= time)
             {
@@ -135,11 +136,14 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
                 GameManager.instance.playerType = PlayerType.Blocker;
             }
 
+            Debug.LogWarning("Loading scene ok");
             SceneManager.LoadScene(1);
             //GameObject chatMessage = Instantiate(chatMessagePrefab);
             //chatMessage.GetComponent<Text>().text = GameManager.instance.playerType.ToString();
             //chatMessage.transform.SetParent(chatContent.transform);
             //chatScrollbar.value = 1;
+        } else {
+            Debug.LogWarning("Thing did not do thing o no: " + _Message);
         }
     }
 

@@ -29,12 +29,18 @@ public class GameManager : MonoBehaviour, IBtObserver {
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
-
+        SceneManager.activeSceneChanged += ActiveSceneChanged;
         bt = Bluetooth.GetInstance();
     }
 
+    public void ActiveSceneChanged(Scene current, Scene next) {
+        if (next == SceneManager.GetSceneByBuildIndex(1)) { // elegant af
+            blockManager.generateGroundAheadOfPlayer = true;
+        }
+    }
+
     void Start() {
-        blockManager.generateGroundAheadOfPlayer = true;
+        //blockManager.generateGroundAheadOfPlayer = true;
     }
 
     // Trying a different approach for GM systems that require being a GameObject component eliminating .Find() - 
