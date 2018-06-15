@@ -47,9 +47,14 @@ public class BlockManager : MonoBehaviour {
 
     void Update() {
         if (generateGroundAheadOfPlayer) {
-            Vector3 playerPos = GameManager.instance.GetPlayerController().transform.position;
-            Vector3 blockPos = new Vector3(Mathf.Floor(playerPos.x), groundYValue, playerPos.z);
+            GenerateGround();
             
+        }
+    }
+
+    public void GenerateGround() {
+        Vector3 playerPos = GameManager.instance.GetPlayerController().transform.position;
+            Vector3 blockPos = new Vector3(Mathf.Floor(playerPos.x), groundYValue, playerPos.z);
             for (float y = blockPos.y; y > groundYBottom; --y) {
                 for (float x = (blockPos.x - blockVisibleWidth); x < (blockPos.x + blockVisibleWidth); ++x) {
                     Vector3 pos = new Vector3(x, y, blockPos.z);
@@ -62,7 +67,7 @@ public class BlockManager : MonoBehaviour {
                 }
             }
 
-            Collider2D[] toBeDestroyed = Physics2D.OverlapBoxAll(new Vector2(playerPos.x - (blockVisibleWidth + 1f), playerPos.y), new Vector2(1f, 512f), 0, 1 << LayerMask.NameToLayer("Block"));
+            Collider2D[] toBeDestroyed = Physics2D.OverlapBoxAll(new Vector2(playerPos.x - (blockVisibleWidth + 5f), playerPos.y), new Vector2(1f, 512f), 0, 1 << LayerMask.NameToLayer("Block"));
             foreach (Collider2D col in toBeDestroyed) {
                 PutBackInPool(col.gameObject);
                 // Force adjustments to nearby blocks
@@ -71,21 +76,6 @@ public class BlockManager : MonoBehaviour {
                 AdjustBitmasks(GetBlockInPos(col.transform.position + Vector3.right));
                 AdjustBitmasks(GetBlockInPos(col.transform.position + Vector3.down));
             }
-        }
-
-        //// Testing block spawning and recursive image adjustment, take it out later ok
-        //if (Input.GetMouseButton(0)) {
-        //    Vector3 mousePos = Input.mousePosition;
-        //    mousePos = Camera.main.ScreenToWorldPoint(mousePos);
-        //    mousePos.z = 0;
-        //    mousePos = new Vector3(Mathf.Floor(mousePos.x), Mathf.Floor(mousePos.y), mousePos.z);
-        //    if (!GetBlockInPos(mousePos)) {
-        //        GameObject block = GetFromPool();
-        //        block.transform.position = mousePos;
-        //        block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
-        //        AdjustBitmasks(block);
-        //    }
-        //}
     }
 
     // Recursive bitmask adjustment for a placed block

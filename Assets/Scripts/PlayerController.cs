@@ -49,7 +49,7 @@ public class PlayerController : MonoBehaviour {
 
     IEnumerator ForcePositionUpdates() {
         while (true) {
-            GameManager.instance.SendPosition(transform.position);
+            //GameManager.instance.SendPosition(transform.position, velocity);
             yield return new WaitForSecondsRealtime(forcePositionUpdateInterval);
         }
     }

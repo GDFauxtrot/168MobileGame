@@ -21,6 +21,8 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     public PlayerType playerType;
 
+    public int score;
+
     void Awake() {
         // This is a SingleTON of stuff
         if (instance != null && instance != this) {
@@ -107,13 +109,17 @@ public class GameManager : MonoBehaviour, IBtObserver {
             System.TimeSpan difference = ourDT - theirDT;
 
             float secs = difference.Seconds + (difference.Milliseconds/1000f);
-
+            Debug.LogWarning("LATENCY: " + secs);
             Vector3 pos = new Vector3((float)m[2], (float)m[3], (float)m[4]);
-            
-            playerController.velocity.y += playerController.acceleration.y*(secs/Time.fixedDeltaTime);
+            Vector3 vel = new Vector3((float)m[5], (float)m[6]);
+
+            playerController.velocity = vel;
+            playerController.velocity.y += playerController.acceleration.y*secs;
             playerController.velocity.y = Mathf.Clamp(playerController.velocity.y, -PlayerController.TERMINAL_VELOCITY, PlayerController.TERMINAL_VELOCITY);
 
-            playerController.transform.position = pos + new Vector3(playerController.velocity.x*(secs/Time.fixedDeltaTime), playerController.velocity.y*(secs/Time.fixedDeltaTime), 0);
+            playerController.transform.position = new Vector3(pos.x + playerController.velocity.x*secs, pos.y + playerController.velocity.y*secs, playerController.transform.position.z);
+
+            blockManager.GenerateGround();
         }
         if (type == "ded") {
             // TODO kill state
@@ -139,13 +145,19 @@ public class GameManager : MonoBehaviour, IBtObserver {
     // Message senders for ez pz code
     public void SendPlayerJump(bool jumping, Vector3 pos)
     {
-        SendMessageProper("jump:"+jumping.ToString()+":"+pos.x+","+pos.y+","+pos.z);
+        SendMessageProper("jump" + Bluetooth.MSG_SEP
+            + jumping.ToString() + Bluetooth.MSG_SEP
+            + pos.x + "," + pos.y + "," + pos.z);
     }
     public void CreateBlock(Vector3 pos) {
-        SendMessageProper("block:"+pos.x+","+pos.y+","+pos.z);
+        SendMessageProper("block" + Bluetooth.MSG_SEP
+            + pos.x + "," + pos.y + "," + pos.z);
     }
-    public void SendPosition(Vector3 pos) {
-        SendMessageProper("pos:"+System.DateTime.Now+":"+pos.x+","+pos.y+","+pos.z);
+    public void SendPosition(Vector3 pos, Vector2 velocity) {
+        SendMessageProper("pos" + Bluetooth.MSG_SEP
+            + System.DateTime.Now + Bluetooth.MSG_SEP
+            + pos.x + "," + pos.y + "," + pos.z + Bluetooth.MSG_SEP
+            + velocity.x + "," + velocity.y);
     }
     public void SendPlayerDead() {
         SendMessageProper("ded");

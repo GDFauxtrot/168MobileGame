@@ -8,7 +8,7 @@ public static class MessageParser {
         if (message == "")
             return null;
 
-        string[] messages = message.Split(':');
+        string[] messages = message.Split(Bluetooth.MSG_SEP);
         
         if (messages[0] == "jump") {
             messageContents.Add(messages[0]);
@@ -36,6 +36,9 @@ public static class MessageParser {
             messageContents.Add(float.Parse(pos[0]));
             messageContents.Add(float.Parse(pos[1]));
             messageContents.Add(float.Parse(pos[2]));
+            string[] vel = messages[3].Split(',');
+            messageContents.Add(float.Parse(vel[0]));
+            messageContents.Add(float.Parse(vel[1]));
         }
         if (messages[0] == "ded") {
             messageContents.Add(messages[0]);

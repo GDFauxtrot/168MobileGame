@@ -105,7 +105,7 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
         }
         
         if (int.Parse(_State) == 3) {
-            SendMessageProper("start:" + (DateTime.Now - startTime));
+            SendMessageProper("start" + Bluetooth.MSG_SEP + (DateTime.Now - startTime));
             handshakeTime = DateTime.Now - startTime;
         }
     }

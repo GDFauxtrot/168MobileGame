@@ -13,9 +13,8 @@ public class BoyoController : MonoBehaviour {
     }
 
     void Update() {
-        // Testing block spawning and recursive image adjustment, take it out later ok
         if (GameManager.instance.playerType == PlayerType.Blocker) {
-            if (Input.GetTouch(0).phase == TouchPhase.Began) {
+            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) {
                 BlockManager bm = GameManager.instance.GetBlockManager();
                 Vector3 mousePos = Input.mousePosition;
                 mousePos = Camera.main.ScreenToWorldPoint(mousePos);

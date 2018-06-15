@@ -11,6 +11,8 @@ using System.Collections.Generic;
 
 public class Bluetooth {
 
+    public const char MSG_SEP = '|';
+
     private AndroidJavaClass plugin;
     private AndroidJavaObject activityObject;
     private static Bluetooth instance;
