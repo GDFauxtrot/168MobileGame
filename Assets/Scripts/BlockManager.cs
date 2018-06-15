@@ -89,7 +89,7 @@ public class BlockManager : MonoBehaviour {
     }
 
     // Recursive bitmask adjustment for a placed block
-    void AdjustBitmasks(GameObject block) {
+    public void AdjustBitmasks(GameObject block) {
         if (block == null)
             return;
 
@@ -159,7 +159,7 @@ public class BlockManager : MonoBehaviour {
 
     // - Assistance (bitmask methods, helper methods, etc.) - //
 
-    GameObject GetBlockInPos(Vector3 pos) {
+    public GameObject GetBlockInPos(Vector3 pos) {
         Collider2D c = Physics2D.OverlapPoint(pos, 1 << LayerMask.NameToLayer("Block"));
         return c ? c.gameObject : null;
     }

@@ -42,10 +42,10 @@ public class PlayerController : MonoBehaviour {
             // Get tap
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) {
                 DoJump();
-                GameManager.instance.SendPlayerJump(true);
+                GameManager.instance.SendPlayerJump(true, transform.position);
             } else if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) {
                 // Midair jump stop (it's wrong NOT to have it)
-                GameManager.instance.SendPlayerJump(false);
+                GameManager.instance.SendPlayerJump(false, transform.position);
                 if (velocity.y > midairStopVelocity) {
                     velocity.y = midairStopVelocity;
                 }
@@ -95,14 +95,16 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
-    public void RunnerDoJump() {
+    public void RunnerDoJump(Vector3 pos) {
         grounded = false;
         velocity.y = jumpSpeed;
+        transform.position = pos;
     }
-    public void RunnerStopJump() {
+    public void RunnerStopJump(Vector3 pos) {
         if (velocity.y > midairStopVelocity) {
             velocity.y = midairStopVelocity;
         }
+        transform.position = pos;
     }
     void DoJump() {
         grounded = false;

@@ -92,11 +92,11 @@ public class GameManager : MonoBehaviour, IBtObserver {
         if(type == "j")
         {
             bool jumping = (bool) m[1];
-
+            Vector3 pos = new Vector3((float)m[2], (float)m[3], (float)m[4]);
             if (jumping)
-                playerController.RunnerDoJump();
+                playerController.RunnerDoJump(pos);
             else
-                playerController.RunnerStopJump();
+                playerController.RunnerStopJump(pos);
         }
     }
 
@@ -117,9 +117,9 @@ public class GameManager : MonoBehaviour, IBtObserver {
     }
 
 
-    public void SendPlayerJump(bool jumping)
+    public void SendPlayerJump(bool jumping, Vector3 pos)
     {
-        SendMessageProper("j:"+jumping.ToString());
+        SendMessageProper("j:"+jumping.ToString()+":"+pos.x+","+pos.y+","+pos.z);
     }
 
     public string SendMessageProper(string message) {

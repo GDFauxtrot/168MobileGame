@@ -13,6 +13,10 @@ public static class MessageParser {
         if (messages[0] == "j") {
             messageContents.Add(messages[0]);
             messageContents.Add(bool.Parse(messages[1]));
+            string[] pos = messages[2].Split(',');
+            messageContents.Add(pos[0]);
+            messageContents.Add(pos[1]);
+            messageContents.Add(pos[2]);
         }
         if (messages[0] == "T") {
             messageContents.Add(messages[0]);
