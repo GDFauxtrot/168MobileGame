@@ -22,6 +22,7 @@ public class BoyoController : MonoBehaviour {
                 mousePos.z = 0;
                 mousePos = new Vector3(Mathf.Floor(mousePos.x), Mathf.Floor(mousePos.y), mousePos.z);
                 if (!bm.GetBlockInPos(mousePos)) {
+                    GameManager.instance.CreateBlock(mousePos);
                     GameObject block = bm.GetFromPool();
                     block.transform.position = mousePos;
                     block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks

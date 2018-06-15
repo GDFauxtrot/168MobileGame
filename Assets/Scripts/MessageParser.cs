@@ -22,6 +22,13 @@ public static class MessageParser {
             messageContents.Add(messages[0]);
             messageContents.Add(float.Parse(messages[1]));
         }
+        if (messages[0] == "b") {
+            messageContents.Add(messages[0]);
+            string[] pos = messages[1].Split(',');
+            messageContents.Add(float.Parse(pos[0]));
+            messageContents.Add(float.Parse(pos[1]));
+            messageContents.Add(float.Parse(pos[2]));
+        }
         return messageContents;
     }
 }

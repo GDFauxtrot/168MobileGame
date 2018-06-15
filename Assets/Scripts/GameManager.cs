@@ -98,6 +98,13 @@ public class GameManager : MonoBehaviour, IBtObserver {
             else
                 playerController.RunnerStopJump(pos);
         }
+        if (type == "b") {
+            Vector3 pos = new Vector3((float)m[1], (float)m[2], (float)m[3]);
+            GameObject block = blockManager.GetFromPool();
+            block.transform.position = pos;
+            block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
+            blockManager.AdjustBitmasks(block);
+        }
     }
 
     // Interfaces we don't care about
@@ -120,6 +127,9 @@ public class GameManager : MonoBehaviour, IBtObserver {
     public void SendPlayerJump(bool jumping, Vector3 pos)
     {
         SendMessageProper("j:"+jumping.ToString()+":"+pos.x+","+pos.y+","+pos.z);
+    }
+    public void CreateBlock(Vector3 pos) {
+        SendMessageProper("b:"+pos.x+","+pos.y+","+pos.z);
     }
 
     public string SendMessageProper(string message) {

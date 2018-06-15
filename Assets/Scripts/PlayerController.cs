@@ -98,13 +98,13 @@ public class PlayerController : MonoBehaviour {
     public void RunnerDoJump(Vector3 pos) {
         grounded = false;
         velocity.y = jumpSpeed;
-        transform.position = pos;
+        //transform.position = pos;
     }
     public void RunnerStopJump(Vector3 pos) {
         if (velocity.y > midairStopVelocity) {
             velocity.y = midairStopVelocity;
         }
-        transform.position = pos;
+        //transform.position = pos;
     }
     void DoJump() {
         grounded = false;
