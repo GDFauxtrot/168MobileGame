@@ -83,24 +83,21 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     // Interfaces we care about
     public void OnGetMessage(string _Message) {
-        Debug.Log("HELLO HELLO HELLO HELLO");
         _Message = StripMessage(_Message);
         // other player is jumping, need to maybe set it so that the playercontroller has a bool looking at this
         List<object> m = MessageParser.ParseMessage(_Message);
 
         string type = (string) m[0];
         
-        Debug.LogWarning(type);
         if(type == "j")
         {
             bool jumping = (bool) m[1];
-            Debug.LogWarning(jumping.ToString());
+
             if (jumping)
                 playerController.RunnerDoJump();
-            //playerController.jumping = jumping;
+            else
+                playerController.RunnerStopJump();
         }
-    
-    
     }
 
     // Interfaces we don't care about

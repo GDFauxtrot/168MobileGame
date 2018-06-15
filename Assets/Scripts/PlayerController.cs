@@ -53,18 +53,16 @@ public class PlayerController : MonoBehaviour {
         } 
         else if(Bluetooth.connectedToAndroid && GameManager.instance.playerType== PlayerType.Blocker)
         {
-            if(jumping)
-            {
-                DoJump();
-            }
-            else
-            {
-                if (velocity.y > midairStopVelocity) {
-                    velocity.y = midairStopVelocity;
-                }
-            }
-            
-
+            //if(jumping)
+            //{
+            //    DoJump();
+            //}
+            //else
+            //{
+            //    if (velocity.y > midairStopVelocity) {
+            //        velocity.y = midairStopVelocity;
+            //    }
+            //}
         }
         else {
             // Get spacebar
@@ -101,7 +99,11 @@ public class PlayerController : MonoBehaviour {
         grounded = false;
         velocity.y = jumpSpeed;
     }
-
+    public void RunnerStopJump() {
+        if (velocity.y > midairStopVelocity) {
+            velocity.y = midairStopVelocity;
+        }
+    }
     void DoJump() {
         grounded = false;
         velocity.y = jumpSpeed;
