@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     void Start() {
         if (!btAddedObserver) {
+            Debug.Log("OBSERVER ADDED");
             btModel.AddObserver(this);
             btAddedObserver = true;
         }
@@ -80,6 +81,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     // Interfaces we care about
     public void OnGetMessage(string _Message) {
+        Debug.Log("HELLO HELLO HELLO HELLO");
         _Message = StripMessage(_Message);
         // other player is jumping, need to maybe set it so that the playercontroller has a bool looking at this
         List<object> m = MessageParser.ParseMessage(_Message);

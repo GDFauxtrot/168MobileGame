@@ -15,6 +15,8 @@ public interface IBtObserver {
 
 public class BluetoothModel : MonoBehaviour {
 
+    public static BluetoothModel instance;
+
     List<IBtObserver> observerList;
 
     private int bufferSize = 256;
@@ -26,6 +28,13 @@ public class BluetoothModel : MonoBehaviour {
     private StringBuilder rawMessage = null;
 
     void Awake() {
+        // This is a SingleTON of stuff
+        if (instance != null && instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+        DontDestroyOnLoad(gameObject);
         observerList = new List<IBtObserver>();
 
         macAddresses = new List<string>();
