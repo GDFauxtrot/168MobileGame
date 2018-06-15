@@ -20,13 +20,17 @@ public class PlayerController : MonoBehaviour {
 
     public LayerMask collisionLayers;
 
-    Vector2 velocity, acceleration;
+    public Vector2 velocity, acceleration;
 
     Rigidbody2D rb; // Why do you make my life miserable
     BoxCollider2D ourBox;
     
     bool grounded;
     
+    bool ignoreSideCollisions; // no do dis if we're the blocker
+
+    float forcePositionUpdateInterval = 1f;
+
     void Awake() {
         rb = GetComponent<Rigidbody2D>();
         ourBox = GetComponent<BoxCollider2D>();
@@ -35,8 +39,20 @@ public class PlayerController : MonoBehaviour {
         
         GameManager.instance.SetPlayerController(this);
         
+        if (GameManager.instance.playerType == PlayerType.Blocker) {
+            ignoreSideCollisions = true;
+        }
+        if (GameManager.instance.playerType == PlayerType.Runner) {
+            StartCoroutine(ForcePositionUpdates());
+        }
     }
 
+    IEnumerator ForcePositionUpdates() {
+        while (true) {
+            GameManager.instance.SendPosition(transform.position);
+            yield return new WaitForSecondsRealtime(forcePositionUpdateInterval);
+        }
+    }
     void Update() {                          // That should work...
         if (Bluetooth.connectedToAndroid && GameManager.instance.playerType== PlayerType.Runner) {
             // Get tap
@@ -130,6 +146,10 @@ public class PlayerController : MonoBehaviour {
         Collider2D col;
 
         bool checkBottom = true, checkTop = true, checkLeft = true, checkRight = true; // y'know, the egyptians worshipped ugliness... just sayin
+        if (ignoreSideCollisions) {
+            checkRight = false;
+            checkLeft = false;
+        }
 
         do {
             Collider2D[] cols = Physics2D.OverlapBoxAll(transform.position, ourBox.bounds.size, 0f, collisionLayers.value);

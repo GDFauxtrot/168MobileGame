@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
         string type = (string) m[0];
         
-        if(type == "j")
+        if(type == "jump")
         {
             bool jumping = (bool) m[1];
             Vector3 pos = new Vector3((float)m[2], (float)m[3], (float)m[4]);
@@ -98,12 +98,30 @@ public class GameManager : MonoBehaviour, IBtObserver {
             else
                 playerController.RunnerStopJump(pos);
         }
-        if (type == "b") {
+        if (type == "block") {
             Vector3 pos = new Vector3((float)m[1], (float)m[2], (float)m[3]);
             GameObject block = blockManager.GetFromPool();
             block.transform.position = pos;
             block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
             blockManager.AdjustBitmasks(block);
+        }
+        if (type == "pos") {
+            // Update position, incl. latency compensation
+            System.DateTime theirDT = (System.DateTime) m[1];
+            System.DateTime ourDT = System.DateTime.Now;
+            System.TimeSpan difference = ourDT - theirDT;
+
+            float secs = difference.Seconds + (difference.Milliseconds/1000f);
+
+            Vector3 pos = new Vector3((float)m[2], (float)m[3], (float)m[4]);
+            
+            playerController.velocity.y += playerController.acceleration.y*(secs/Time.fixedDeltaTime);
+            playerController.velocity.y = Mathf.Clamp(playerController.velocity.y, -PlayerController.TERMINAL_VELOCITY, PlayerController.TERMINAL_VELOCITY);
+
+            playerController.transform.position = pos + new Vector3(playerController.velocity.x*(secs/Time.fixedDeltaTime), playerController.velocity.y*(secs/Time.fixedDeltaTime), 0);
+        }
+        if (type == "ded") {
+            // TODO kill state
         }
     }
 
@@ -123,15 +141,20 @@ public class GameManager : MonoBehaviour, IBtObserver {
     public void OnFoundDevice() {
     }
 
-
+    // Message senders for ez pz code
     public void SendPlayerJump(bool jumping, Vector3 pos)
     {
-        SendMessageProper("j:"+jumping.ToString()+":"+pos.x+","+pos.y+","+pos.z);
+        SendMessageProper("jump:"+jumping.ToString()+":"+pos.x+","+pos.y+","+pos.z);
     }
     public void CreateBlock(Vector3 pos) {
-        SendMessageProper("b:"+pos.x+","+pos.y+","+pos.z);
+        SendMessageProper("block:"+pos.x+","+pos.y+","+pos.z);
     }
-
+    public void SendPosition(Vector3 pos) {
+        SendMessageProper("pos:"+System.DateTime.Now+":"+pos.x+","+pos.y+","+pos.z);
+    }
+    public void SendPlayerDead() {
+        SendMessageProper("ded");
+    }
     public string SendMessageProper(string message) {
         return bt.Send(BluetoothModel.STARTCHAR + message + BluetoothModel.ENDCHAR);
     }
