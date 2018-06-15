@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
     public PlayerType playerType;
 
+    bool btAddedObserver;
     void Awake() {
         // This is a SingleTON of stuff
         if (instance != null && instance != this) {
@@ -29,6 +30,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+        
         SceneManager.activeSceneChanged += ActiveSceneChanged;
         bt = Bluetooth.GetInstance();
     }
@@ -40,6 +42,11 @@ public class GameManager : MonoBehaviour, IBtObserver {
     }
 
     void Start() {
+        if (!btAddedObserver) {
+            btModel.AddObserver(this);
+            btAddedObserver = true;
+        }
+        
         //blockManager.generateGroundAheadOfPlayer = true;
     }
 
@@ -76,8 +83,6 @@ public class GameManager : MonoBehaviour, IBtObserver {
         _Message = StripMessage(_Message);
         // other player is jumping, need to maybe set it so that the playercontroller has a bool looking at this
         List<object> m = MessageParser.ParseMessage(_Message);
-
-        
 
         string type = (string) m[0];
         
