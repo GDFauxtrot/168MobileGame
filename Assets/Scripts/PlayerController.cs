@@ -5,11 +5,14 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour {
 
     public const int COLLISION_MAX_ITERATIONS = 4; // 4 is a good number for this, one for each side
+    public const float TERMINAL_VELOCITY = 40f;
 
     public float jumpSpeed;
     public float midairStopVelocity;
     public float moveSpeed;
 
+
+    public bool jumping;
     public bool moving;
     public bool mainCameraFollowing;
 
@@ -34,18 +37,36 @@ public class PlayerController : MonoBehaviour {
         
     }
 
-    void Update() {
-        if (Bluetooth.connectedToAndroid) {
+    void Update() {                          // That should work...
+        if (Bluetooth.connectedToAndroid && GameManager.instance.playerType== PlayerType.Runner) {
             // Get tap
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) {
                 DoJump();
+                GameManager.instance.SendPlayerJump(true);
             } else if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) {
                 // Midair jump stop (it's wrong NOT to have it)
+                GameManager.instance.SendPlayerJump(false);
                 if (velocity.y > midairStopVelocity) {
                     velocity.y = midairStopVelocity;
                 }
             }
-        } else {
+        } 
+        else if(Bluetooth.connectedToAndroid && GameManager.instance.playerType== PlayerType.Blocker)
+        {
+            if(jumping)
+            {
+                DoJump();
+            }
+            else
+            {
+                if (velocity.y > midairStopVelocity) {
+                    velocity.y = midairStopVelocity;
+                }
+            }
+            
+
+        }
+        else {
             // Get spacebar
             if (Input.GetKeyDown(KeyCode.Space)) {
                 DoJump();
@@ -63,7 +84,9 @@ public class PlayerController : MonoBehaviour {
         else {
             velocity.x = 0f;
         }
+    }
 
+    void FixedUpdate() {
         // Do the physics and check the resulting collisions
         CheckCollisions();
     }
@@ -83,15 +106,17 @@ public class PlayerController : MonoBehaviour {
 
         // Apply gravity (vf = vi + a*t)
         if (!grounded)
-            velocity.y += acceleration.y*Time.deltaTime;
+            velocity.y += acceleration.y*Time.fixedDeltaTime;
         
+        velocity.y = Mathf.Clamp(velocity.y, -TERMINAL_VELOCITY, TERMINAL_VELOCITY);
+
         // IMPORTANT: THIS is the main position update before collisions happen
         transform.position = new Vector3(
-            transform.position.x + velocity.x*Time.deltaTime,
-            transform.position.y + velocity.y*Time.deltaTime,
+            transform.position.x + velocity.x*Time.fixedDeltaTime,
+            transform.position.y + velocity.y*Time.fixedDeltaTime,
             transform.position.z);
 
-        // TODO optimize later -- loop COLLISION_MAX_ITERATION times until we aren't colliding anymore (ie all collision sides overlap as 0 at the most)
+        // TODO optimize later
         int collisionIteration = 0;
         Collider2D col;
 

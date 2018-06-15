@@ -6,7 +6,9 @@ using UnityEngine.SceneManagement;
 // https://gamedev.stackexchange.com/questions/130180/smooth-loading-screen-between-scenes
 // This was insightful, just leaving it here
 
-public class GameManager : MonoBehaviour {
+public enum PlayerType { Runner, Blocker };
+
+public class GameManager : MonoBehaviour, IBtObserver {
 
     public static GameManager instance;
 
@@ -15,7 +17,9 @@ public class GameManager : MonoBehaviour {
     BluetoothModel btModel;
     BlockManager blockManager;
     PlayerController playerController;
-    //SpawnerController spawnerController;
+    BoyoController boyoController;
+
+    public PlayerType playerType;
 
     void Awake() {
         // This is a SingleTON of stuff
@@ -44,6 +48,9 @@ public class GameManager : MonoBehaviour {
     public void SetPlayerController(PlayerController pc) {
         playerController = pc;
     }
+    public void SetBoyoController(BoyoController bc) {
+        boyoController = bc;
+    }
 
     public BluetoothModel GetBluetoothModel() {
         return btModel;
@@ -53,5 +60,51 @@ public class GameManager : MonoBehaviour {
     }
     public PlayerController GetPlayerController() {
         return playerController;
+    }
+    public BoyoController GetBoyoController() {
+        return boyoController;
+    }
+
+    // Interfaces we care about
+    public void OnGetMessage(string _Message) {
+    // ok cool
+        // other player is jumping, need to maybe set it so that the playercontroller has a bool looking at this
+        List<object> m = MessageParser.ParseMessage(_Message);
+
+        string type = (string) m[0];
+        
+        if(type == "j")
+        {
+            bool jumping = (bool) m[1];
+            playerController.jumping = jumping;
+        }
+    
+    
+    }
+
+    // Interfaces we don't care about
+    public void OnSendMessage(string _Message) {
+    }
+
+    public void OnStateChanged(string _State) {
+    }
+
+    public void OnFoundNoDevice() {
+    }
+
+    public void OnScanFinish() {
+    }
+
+    public void OnFoundDevice() {
+    }
+
+
+    public void SendPlayerJump(bool jumping)
+    {
+        SendMessageProper("j:"+jumping.ToString());
+    }
+
+    public string SendMessageProper(string message) {
+        return bt.Send(BluetoothModel.STARTCHAR + message + BluetoothModel.ENDCHAR);
     }
 }

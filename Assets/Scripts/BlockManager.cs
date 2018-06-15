@@ -73,19 +73,19 @@ public class BlockManager : MonoBehaviour {
             }
         }
 
-        // Testing block spawning and recursive image adjustment, take it out later ok
-        if (Input.GetMouseButton(0)) {
-            Vector3 mousePos = Input.mousePosition;
-            mousePos = Camera.main.ScreenToWorldPoint(mousePos);
-            mousePos.z = 0;
-            mousePos = new Vector3(Mathf.Floor(mousePos.x), Mathf.Floor(mousePos.y), mousePos.z);
-            if (!GetBlockInPos(mousePos)) {
-                GameObject block = GetFromPool();
-                block.transform.position = mousePos;
-                block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
-                AdjustBitmasks(block);
-            }
-        }
+        //// Testing block spawning and recursive image adjustment, take it out later ok
+        //if (Input.GetMouseButton(0)) {
+        //    Vector3 mousePos = Input.mousePosition;
+        //    mousePos = Camera.main.ScreenToWorldPoint(mousePos);
+        //    mousePos.z = 0;
+        //    mousePos = new Vector3(Mathf.Floor(mousePos.x), Mathf.Floor(mousePos.y), mousePos.z);
+        //    if (!GetBlockInPos(mousePos)) {
+        //        GameObject block = GetFromPool();
+        //        block.transform.position = mousePos;
+        //        block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
+        //        AdjustBitmasks(block);
+        //    }
+        //}
     }
 
     // Recursive bitmask adjustment for a placed block

@@ -3,9 +3,10 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class BluetoothController : MonoBehaviour, IBtObserver {
-    
+
     public GameObject chatMessagePrefab;
 
     private Bluetooth bluetooth;
@@ -27,6 +28,8 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
     private InputField chatInputField;
 
     private Button chatSendButton;
+
+    private float HandShakeTime;
 
     private void Awake() {
         bluetooth = Bluetooth.GetInstance();
@@ -99,6 +102,11 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
                 break;
         }
         
+        if (int.Parse(_State) == 3) {
+            // Connected - tell both sides to switch scenes, pick a role and begin play
+            SendMessageProper("T!"+Time.realtimeSinceStartup);
+            HandShakeTime=Time.realtimeSinceStartup;
+        }
     }
 
     public void OnSendMessage(string _Message) {
@@ -110,10 +118,25 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
 
         _Message = StripMessage(_Message);
 
-        GameObject chatMessage = Instantiate(chatMessagePrefab);
-        chatMessage.GetComponent<Text>().text = _Message;
-        chatMessage.transform.SetParent(chatContent.transform);
-        chatScrollbar.value = 1;
+
+        // might be fucked until tested
+        if(_Message.Substring(0,2)=="T!")
+        {
+            if(HandShakeTime>=float.Parse(_Message.Substring(3)))
+            {
+                GameManager.instance.playerType = PlayerType.Runner;
+            }
+            else
+            {
+                GameManager.instance.playerType = PlayerType.Blocker;
+            }
+
+            //SceneManager.LoadScene(1);
+            GameObject chatMessage = Instantiate(chatMessagePrefab);
+            chatMessage.GetComponent<Text>().text = GameManager.instance.playerType.ToString();
+            chatMessage.transform.SetParent(chatContent.transform);
+            chatScrollbar.value = 1;
+        }
     }
 
     public void OnFoundNoDevice() {

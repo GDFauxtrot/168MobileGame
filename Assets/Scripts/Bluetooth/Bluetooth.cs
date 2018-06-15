@@ -26,8 +26,9 @@ public class Bluetooth {
                 instance.PluginStart();
                 instance.Discoverable();
                 connectedToAndroid = true;
-            } catch (Exception) {
+            } catch (Exception e) {
                 Debug.LogWarning("WARNING: Android environment not found! If it's supposed to (i.e. not testing/debugging), something terrible happened!");
+                Debug.LogWarning(e);
                 connectedToAndroid = false;
             }
         }
