@@ -104,7 +104,7 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
         
         if (int.Parse(_State) == 3) {
             // Connected - tell both sides to switch scenes, pick a role and begin play
-            SendMessageProper("T!"+Time.realtimeSinceStartup);
+            SendMessageProper("T:"+Time.realtimeSinceStartup);
             HandShakeTime=Time.realtimeSinceStartup;
         }
     }
@@ -120,9 +120,13 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
 
 
         // might be fucked until tested
-        if(_Message.Substring(0,2)=="T!")
+        List<object> message = MessageParser.ParseMessage(_Message);
+        string type = (string) message[0];
+
+        if(type == "T")
         {
-            if(HandShakeTime>=float.Parse(_Message.Substring(3)))
+            float time = (float) message[1];
+            if(HandShakeTime >= time)
             {
                 GameManager.instance.playerType = PlayerType.Runner;
             }
@@ -131,11 +135,11 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
                 GameManager.instance.playerType = PlayerType.Blocker;
             }
 
-            //SceneManager.LoadScene(1);
-            GameObject chatMessage = Instantiate(chatMessagePrefab);
-            chatMessage.GetComponent<Text>().text = GameManager.instance.playerType.ToString();
-            chatMessage.transform.SetParent(chatContent.transform);
-            chatScrollbar.value = 1;
+            SceneManager.LoadScene(1);
+            //GameObject chatMessage = Instantiate(chatMessagePrefab);
+            //chatMessage.GetComponent<Text>().text = GameManager.instance.playerType.ToString();
+            //chatMessage.transform.SetParent(chatContent.transform);
+            //chatScrollbar.value = 1;
         }
     }
 

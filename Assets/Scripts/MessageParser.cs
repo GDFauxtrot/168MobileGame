@@ -14,7 +14,10 @@ public static class MessageParser {
             messageContents.Add(messages[0]);
             messageContents.Add(bool.Parse(messages[1]));
         }
-
+        if (messages[0] == "T") {
+            messageContents.Add(messages[0]);
+            messageContents.Add(float.Parse(messages[1]));
+        }
         return messageContents;
     }
 }
