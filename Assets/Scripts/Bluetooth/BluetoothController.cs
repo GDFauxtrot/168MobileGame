@@ -11,23 +11,23 @@ public class BluetoothController : MonoBehaviour, IBtObserver {
 
     private Bluetooth bluetooth;
 
-    private BluetoothModel bluetoothModel;
+    public BluetoothModel bluetoothModel;
 
-    private Dropdown deviceDropdown;
+    public Dropdown deviceDropdown;
 
-    private Button searchButton;
+    public Button searchButton;
 
-    private Button connectButton;
+    public Button connectButton;
 
     public Text bluetoothConnected;
 
-    private GameObject chatContent;
+    public GameObject chatContent;
 
-    private Scrollbar chatScrollbar;
+    public Scrollbar chatScrollbar;
 
-    private InputField chatInputField;
+    public InputField chatInputField;
 
-    private Button chatSendButton;
+    public Button chatSendButton;
 
     private float HandShakeTime;
 
