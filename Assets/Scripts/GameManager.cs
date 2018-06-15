@@ -38,15 +38,17 @@ public class GameManager : MonoBehaviour, IBtObserver {
     public void ActiveSceneChanged(Scene current, Scene next) {
         if (next == SceneManager.GetSceneByBuildIndex(1)) { // elegant af
             blockManager.generateGroundAheadOfPlayer = true;
+            btModel.AddObserver(this);
+            btAddedObserver = true;
         }
     }
 
     void Start() {
-        if (!btAddedObserver) {
-            Debug.Log("OBSERVER ADDED");
-            btModel.AddObserver(this);
-            btAddedObserver = true;
-        }
+        //if (!btAddedObserver) {
+        //    Debug.Log("OBSERVER ADDED");
+        //    btModel.AddObserver(this);
+        //    btAddedObserver = true;
+        //}
         
         //blockManager.generateGroundAheadOfPlayer = true;
     }
