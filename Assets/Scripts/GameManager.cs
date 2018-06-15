@@ -79,10 +79,14 @@ public class GameManager : MonoBehaviour, IBtObserver {
 
         string type = (string) m[0];
         
+        Debug.LogWarning(type);
         if(type == "j")
         {
             bool jumping = (bool) m[1];
-            playerController.jumping = jumping;
+            Debug.LogWarning(jumping.ToString());
+            if (jumping)
+                playerController.RunnerDoJump();
+            //playerController.jumping = jumping;
         }
     
     

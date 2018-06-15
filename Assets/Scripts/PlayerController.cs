@@ -97,6 +97,11 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
+    public void RunnerDoJump() {
+        grounded = false;
+        velocity.y = jumpSpeed;
+    }
+
     void DoJump() {
         grounded = false;
         velocity.y = jumpSpeed;
