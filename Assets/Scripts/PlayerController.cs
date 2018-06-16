@@ -119,6 +119,11 @@ public class PlayerController : MonoBehaviour {
         else {
             velocity.x = 0f;
         }
+
+        if (transform.position.y < -64) {
+            transform.position = new Vector3(transform.position.x, 4f, transform.position.z);
+            velocity.y = 0f;
+        }
     }
 
     void FixedUpdate() {
@@ -139,6 +144,7 @@ public class PlayerController : MonoBehaviour {
     void OnCollisionEnter2D(Collision2D col) {
         if (col.collider == killCollider || col.otherCollider == killCollider) {
             GameManager.instance.PlayerDied();
+            
         }
     }
 

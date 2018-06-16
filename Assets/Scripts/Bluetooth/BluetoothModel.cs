@@ -68,7 +68,7 @@ public class BluetoothModel : MonoBehaviour {
         }
         
         string tempMassege = messageQueue.Dequeue();
-
+        Debug.Log(tempMassege);
         for (int i = 0; i < observerList.Count; ++i) {
             observerList[i].OnGetMessage(tempMassege);
         }

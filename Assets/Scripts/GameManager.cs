@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
     public PlayerType playerType;
 
     public int score;
-    public bool gameIsPlaying = true;
+    public bool gameIsPlaying;
 
     GameObject scoreText;
     GameObject roleText;
@@ -101,6 +101,14 @@ public class GameManager : MonoBehaviour, IBtObserver {
         blockManager.generateGroundAheadOfPlayer = false;
         playerController.gameObject.SetActive(false);
         scoreText.GetComponent<Text>().text = score.ToString();
+
+        StartCoroutine(RestartPlayers());
+    }
+
+    IEnumerator RestartPlayers() {
+        yield return new WaitForSecondsRealtime(5f);
+        SendRestart();
+        SceneManager.LoadScene(1);
     }
 
     // Interfaces we care about
@@ -134,7 +142,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
             System.TimeSpan difference = ourDT - theirDT;
 
             float secs = difference.Seconds + (difference.Milliseconds/1000f);
-            Debug.Log("LATENCY: " + secs);
+            
             Vector3 pos = new Vector3((float)m[2], (float)m[3], (float)m[4]);
             Vector3 vel = new Vector3((float)m[5], (float)m[6]);
 
@@ -152,6 +160,23 @@ public class GameManager : MonoBehaviour, IBtObserver {
             blockManager.generateGroundAheadOfPlayer = false;
             playerController.gameObject.SetActive(false);
             scoreText.GetComponent<Text>().text = "Score: " + score.ToString();
+        }
+        if (type == "pit") {
+            int count = (int) m[1];
+            StartCoroutine(blockManager.DelayGroundSpawningForCount(count));
+        }
+        if (type == "blocks") {
+            for (int i = 1; i < m.Count; ++i) {
+                Vector3 pos = (Vector3) m[i];
+                Debug.LogWarning("CREATING BLOCK " + pos);
+                GameObject block = blockManager.GetFromPool();
+                block.transform.position = pos;
+                block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
+                blockManager.AdjustBitmasks(block);
+            }
+        }
+        if (type == "restart") {
+            SceneManager.LoadScene(1);
         }
     }
 
@@ -171,6 +196,10 @@ public class GameManager : MonoBehaviour, IBtObserver {
     public void OnFoundDevice() {
     }
 
+    public void SendRestart() {
+        SendMessageProper("restart");
+    }
+
     // Message senders for ez pz code
     public void SendPlayerJump(bool jumping, Vector3 pos)
     {
@@ -182,11 +211,21 @@ public class GameManager : MonoBehaviour, IBtObserver {
         SendMessageProper("block" + Bluetooth.MSG_SEP
             + pos.x + "," + pos.y + "," + pos.z);
     }
+    public void CreateBlocks(List<Vector3> blocks) {
+        string data = "blocks";
+        foreach (Vector3 v in blocks) {
+            data = data + Bluetooth.MSG_SEP + v.x + "," + v.y + "," + v.z;
+        }
+        SendMessageProper(data);
+    }
     public void SendPosition(Vector3 pos, Vector2 velocity) {
         SendMessageProper("pos" + Bluetooth.MSG_SEP
             + System.DateTime.Now + Bluetooth.MSG_SEP
             + pos.x + "," + pos.y + "," + pos.z + Bluetooth.MSG_SEP
             + velocity.x + "," + velocity.y);
+    }
+    public void SendPit(int count) {
+        SendMessageProper("pit" + Bluetooth.MSG_SEP + count.ToString());
     }
     public void SendPlayerDead(int score) {
         SendMessageProper("ded" + Bluetooth.MSG_SEP + score);

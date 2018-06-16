@@ -207,10 +207,11 @@ public class BlockManager : MonoBehaviour {
     // - BoyoController methods - //
 
     public void CreateRandomObstacle() {
+        Debug.LogWarning("CREATE RANDOM OBSTACLE");
         bool[][] obstacle1 = new bool[3][] {
-            new bool[5] {false, false, false, false, true},
-            new bool[5] {false, false, true, false, true},
-            new bool[5] {true, false, true, false, true}
+            new bool[7] {false, false, false, false, false, false, true},
+            new bool[7] {false, false, false, true, false, false, true},
+            new bool[7] {true, false, false, true, false, false, true}
         };
 
         bool[][] obstacle2 = new bool[2][] {
@@ -225,15 +226,10 @@ public class BlockManager : MonoBehaviour {
             new bool[9] {false, false, false, false, true, false, false, false, true },
             new bool[9] {true, false, false, false, true, true, true, false, true }
         };
-        //            GameObject block = bm.GetFromPool();
-        //            block.transform.position = mousePos;
-        //            block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
-        //            bm.AdjustBitmasks(block);
-
         int pick = Random.Range(0, 3);
 
         bool[][] obstacle;
-
+        
         if (pick == 0) {
             obstacle = obstacle1;
         } else if (pick == 1) {
@@ -241,23 +237,39 @@ public class BlockManager : MonoBehaviour {
         } else {
             obstacle = obstacle3;
         }
+
+        Debug.LogWarning("PICKED OBSTACLE " + pick);
+
+        List<Vector3> blocks = new List<Vector3>();
+
         for(int y = 0; y < obstacle.Length; ++y) {
             for (int x = 0; x < obstacle[y].Length; ++x) {
                 if (obstacle[(obstacle.Length-1)-y][x]) { // Read array backwards but iterate forwards for Y
                     GameObject block = GetFromPool();
-                    block.transform.position = new Vector3(blockVisibleWidth+x, groundYValue+y+1, block.transform.position.z);
+                    Debug.LogWarning("CREATE BLOCK");
+                    if (Bluetooth.connectedToAndroid) {
+                        //GameManager.instance.CreateBlock(new Vector3(x, y, block.transform.position.z));
+                        blocks.Add(new Vector3(Mathf.Floor(GameManager.instance.GetPlayerController().transform.position.x)+blockVisibleWidth+x, groundYValue+y+1, block.transform.position.z));
+                    }
+                        
+                    block.transform.position = new Vector3(Mathf.Floor(GameManager.instance.GetPlayerController().transform.position.x)+blockVisibleWidth+x, groundYValue+y+1, block.transform.position.z);
                     block.GetComponent<Block>().bitmask = -1;
                     AdjustBitmasks(block);
                 }
             }
         }
+
+        Debug.LogWarning("PASSING BLOCKS TO PEER");
+        GameManager.instance.CreateBlocks(blocks);
     }
 
     public void CreatePit() {
-        StartCoroutine(DelayGroundSpawningForCount(3));
+        int count = 3;
+        StartCoroutine(DelayGroundSpawningForCount(count));
+        GameManager.instance.SendPit(count);
     }
 
-    IEnumerator DelayGroundSpawningForCount(int count) {
+    public IEnumerator DelayGroundSpawningForCount(int count) {
         float xPos = Mathf.Floor(GameManager.instance.GetPlayerController().transform.position.x);
         generateGroundAheadOfPlayer = false;
         yield return new WaitUntil(() => {

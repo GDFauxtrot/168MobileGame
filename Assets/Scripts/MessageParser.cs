@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+
 public static class MessageParser {
 
     public static List<object> ParseMessage(string message) {
@@ -29,6 +31,13 @@ public static class MessageParser {
             messageContents.Add(float.Parse(pos[1]));
             messageContents.Add(float.Parse(pos[2]));
         }
+        if (messages[0] == "blocks") {
+            messageContents.Add(messages[0]);
+            for (int i = 1; i < messages.Length; ++i) {
+                string[] pos = messages[i].Split(',');
+                messageContents.Add(new Vector3(float.Parse(pos[0]),float.Parse(pos[1]),float.Parse(pos[2])));
+            }
+        }
         if (messages[0] == "pos") {
             messageContents.Add(messages[0]);
             messageContents.Add(System.DateTime.Parse(messages[1]));
@@ -43,6 +52,13 @@ public static class MessageParser {
         if (messages[0] == "ded") {
             messageContents.Add(messages[0]);
             messageContents.Add(int.Parse(messages[1]));
+        }
+        if (messages[0] == "pit") {
+            messageContents.Add(messages[0]);
+            messageContents.Add(int.Parse(messages[1]));
+        }
+        if (messages[0] == "restart") {
+            messageContents.Add(messages[0]);
         }
         return messageContents;
     }
