@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour {
     public float midairStopVelocity;
     public float moveSpeed;
 
+    bool canJump;
 
     public bool jumping;
     public bool moving;
@@ -24,10 +25,12 @@ public class PlayerController : MonoBehaviour {
 
     Rigidbody2D rb; // Why do you make my life miserable
     BoxCollider2D ourBox;
-    
+    BoxCollider2D killCollider;
+
     bool grounded;
     
     bool ignoreSideCollisions; // no do dis if we're the blocker
+    bool hitRightThisCollision;
 
     float forcePositionUpdateInterval = 1f;
 
@@ -43,13 +46,17 @@ public class PlayerController : MonoBehaviour {
             ignoreSideCollisions = true;
         }
         if (GameManager.instance.playerType == PlayerType.Runner) {
-            StartCoroutine(ForcePositionUpdates());
+            //StartCoroutine(ForcePositionUpdates());
+            killCollider = gameObject.AddComponent<BoxCollider2D>();
+            //killCollider.isTrigger = true;
+            killCollider.offset = new Vector2(0.5f, 0f);
+            killCollider.size = new Vector2(0.1f, 0.3f);
         }
     }
 
     IEnumerator ForcePositionUpdates() {
         while (true) {
-            //GameManager.instance.SendPosition(transform.position, velocity);
+            GameManager.instance.SendPosition(transform.position, velocity);
             yield return new WaitForSecondsRealtime(forcePositionUpdateInterval);
         }
     }
@@ -58,7 +65,6 @@ public class PlayerController : MonoBehaviour {
             // Get tap
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) {
                 DoJump();
-                GameManager.instance.SendPlayerJump(true, transform.position);
             } else if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) {
                 // Midair jump stop (it's wrong NOT to have it)
                 GameManager.instance.SendPlayerJump(false, transform.position);
@@ -90,6 +96,21 @@ public class PlayerController : MonoBehaviour {
                     velocity.y = midairStopVelocity;
                 }
             }
+
+            if (Input.GetMouseButtonDown(0)) {
+                BlockManager bm = GameManager.instance.GetBlockManager();
+                Vector3 mousePos = Input.mousePosition;
+                mousePos = Camera.main.ScreenToWorldPoint(mousePos);
+                mousePos.z = 0;
+                mousePos = new Vector3(Mathf.Floor(mousePos.x), Mathf.Floor(mousePos.y), mousePos.z);
+                if (!bm.GetBlockInPos(mousePos)) {
+                    //GameManager.instance.CreateBlock(mousePos);
+                    GameObject block = bm.GetFromPool();
+                    block.transform.position = mousePos;
+                    block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
+                    bm.AdjustBitmasks(block);
+                }
+            }
         }
 
         // mooooooove bitch, get out da way
@@ -102,12 +123,22 @@ public class PlayerController : MonoBehaviour {
 
     void FixedUpdate() {
         // Do the physics and check the resulting collisions
+        hitRightThisCollision = false;
         CheckCollisions();
+        //if (hitRightThisCollision) {
+        //    GameManager.instance.PlayerDied();
+        //}
     }
 
     void LateUpdate() {
         if (mainCameraFollowing) {
             Camera.main.transform.position = new Vector3(transform.position.x + cameraOffset.x, transform.position.y + cameraOffset.y, Camera.main.transform.position.z);
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D col) {
+        if (col.collider == killCollider || col.otherCollider == killCollider) {
+            GameManager.instance.PlayerDied();
         }
     }
 
@@ -123,8 +154,12 @@ public class PlayerController : MonoBehaviour {
         //transform.position = pos;
     }
     void DoJump() {
-        grounded = false;
-        velocity.y = jumpSpeed;
+        if (canJump) {
+            GameManager.instance.SendPlayerJump(true, transform.position);
+            grounded = false;
+            velocity.y = jumpSpeed;
+            canJump = false;
+        }
     }
 
     void CheckCollisions() {
@@ -229,6 +264,7 @@ public class PlayerController : MonoBehaviour {
                     // Handle side collision normally
                     checkLeft = false;
                     if (wall || !(displacementBottom == 0 || !checkBottom)) { // shit gets stuck when moving along the top of a block - prevent this
+                        canJump = true;
                         transform.position = new Vector3(transform.position.x + displacementLeft, transform.position.y, transform.position.z);
                     }
                 }
@@ -249,6 +285,8 @@ public class PlayerController : MonoBehaviour {
                     // Handle side collision normally
                     checkRight = false;
                     if (wall || !(displacementBottom == 0 || !checkBottom)) { // shit gets stuck when moving along the top of a block - prevent this
+                        hitRightThisCollision = true;
+                        canJump = true;
                         transform.position = new Vector3(transform.position.x - displacementRight, transform.position.y, transform.position.z);
                     }
                 }
@@ -269,6 +307,7 @@ public class PlayerController : MonoBehaviour {
                 if (!grounded && velocity.y < 0f && !wall) {
                     velocity.y = 0f;
                     grounded = true;
+                    canJump = true;
                     transform.position = new Vector3(transform.position.x, transform.position.y + displacementBottom, transform.position.z);
                 }
             }

@@ -45,6 +45,9 @@ public class BlockManager : MonoBehaviour {
         GameManager.instance.SetBlockManager(this);
     }
 
+    void Start() {
+        GenerateFullGround();
+    }
     void Update() {
         if (generateGroundAheadOfPlayer) {
             GenerateGround();
@@ -53,6 +56,31 @@ public class BlockManager : MonoBehaviour {
     }
 
     public void GenerateGround() {
+        Vector3 playerPos = GameManager.instance.GetPlayerController().transform.position;
+            Vector3 blockPos = new Vector3(Mathf.Floor(playerPos.x), groundYValue, playerPos.z);
+            for (float y = blockPos.y; y > groundYBottom; --y) {
+                for (float x = (blockPos.x + blockVisibleWidth)-1; x < (blockPos.x + blockVisibleWidth); ++x) {
+                    Vector3 pos = new Vector3(x, y, blockPos.z);
+                    if (!GetBlockInPos(pos)) {
+                        GameObject block = GetFromPool();
+                        block.transform.position = pos;
+                        block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
+                        AdjustBitmasks(block);
+                    }
+                }
+            }
+
+            Collider2D[] toBeDestroyed = Physics2D.OverlapBoxAll(new Vector2(playerPos.x - (blockVisibleWidth + 5f), playerPos.y), new Vector2(1f, 512f), 0, 1 << LayerMask.NameToLayer("Block"));
+            foreach (Collider2D col in toBeDestroyed) {
+                PutBackInPool(col.gameObject);
+                // Force adjustments to nearby blocks
+                AdjustBitmasks(GetBlockInPos(col.transform.position + Vector3.up));
+                AdjustBitmasks(GetBlockInPos(col.transform.position + Vector3.left));
+                AdjustBitmasks(GetBlockInPos(col.transform.position + Vector3.right));
+                AdjustBitmasks(GetBlockInPos(col.transform.position + Vector3.down));
+            }
+    }
+    public void GenerateFullGround() {
         Vector3 playerPos = GameManager.instance.GetPlayerController().transform.position;
             Vector3 blockPos = new Vector3(Mathf.Floor(playerPos.x), groundYValue, playerPos.z);
             for (float y = blockPos.y; y > groundYBottom; --y) {
@@ -174,5 +202,67 @@ public class BlockManager : MonoBehaviour {
             mask += BITMASK_SOUTH;
 
         return mask;
+    }
+
+    // - BoyoController methods - //
+
+    public void CreateRandomObstacle() {
+        bool[][] obstacle1 = new bool[3][] {
+            new bool[5] {false, false, false, false, true},
+            new bool[5] {false, false, true, false, true},
+            new bool[5] {true, false, true, false, true}
+        };
+
+        bool[][] obstacle2 = new bool[2][] {
+            new bool[8] {false, false, true, true, true, true, true, true},
+            new bool[8] {true, true, true, true, true, true, true, true}
+        };
+
+        bool[][] obstacle3 = new bool[5][] {
+            new bool[9] {true, false, false, false, true, false, false, false, false },
+            new bool[9] {true, false, false, false, false, false, false, false, false, },
+            new bool[9] {false, false, false, false, false, false, false, false, true },
+            new bool[9] {false, false, false, false, true, false, false, false, true },
+            new bool[9] {true, false, false, false, true, true, true, false, true }
+        };
+        //            GameObject block = bm.GetFromPool();
+        //            block.transform.position = mousePos;
+        //            block.GetComponent<Block>().bitmask = -1; // Force an update in AdjustBitmasks
+        //            bm.AdjustBitmasks(block);
+
+        int pick = Random.Range(0, 3);
+
+        bool[][] obstacle;
+
+        if (pick == 0) {
+            obstacle = obstacle1;
+        } else if (pick == 1) {
+            obstacle = obstacle2;
+        } else {
+            obstacle = obstacle3;
+        }
+        for(int y = 0; y < obstacle.Length; ++y) {
+            for (int x = 0; x < obstacle[y].Length; ++x) {
+                if (obstacle[(obstacle.Length-1)-y][x]) { // Read array backwards but iterate forwards for Y
+                    GameObject block = GetFromPool();
+                    block.transform.position = new Vector3(blockVisibleWidth+x, groundYValue+y+1, block.transform.position.z);
+                    block.GetComponent<Block>().bitmask = -1;
+                    AdjustBitmasks(block);
+                }
+            }
+        }
+    }
+
+    public void CreatePit() {
+        StartCoroutine(DelayGroundSpawningForCount(3));
+    }
+
+    IEnumerator DelayGroundSpawningForCount(int count) {
+        float xPos = Mathf.Floor(GameManager.instance.GetPlayerController().transform.position.x);
+        generateGroundAheadOfPlayer = false;
+        yield return new WaitUntil(() => {
+            return Mathf.Floor(GameManager.instance.GetPlayerController().transform.position.x) - xPos > count;
+            });
+        generateGroundAheadOfPlayer = true;
     }
 }

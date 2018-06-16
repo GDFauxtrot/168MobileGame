@@ -42,6 +42,7 @@ public static class MessageParser {
         }
         if (messages[0] == "ded") {
             messageContents.Add(messages[0]);
+            messageContents.Add(int.Parse(messages[1]));
         }
         return messageContents;
     }

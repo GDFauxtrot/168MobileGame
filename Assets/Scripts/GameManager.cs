@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 // https://gamedev.stackexchange.com/questions/130180/smooth-loading-screen-between-scenes
@@ -22,6 +23,10 @@ public class GameManager : MonoBehaviour, IBtObserver {
     public PlayerType playerType;
 
     public int score;
+    public bool gameIsPlaying = true;
+
+    GameObject scoreText;
+    GameObject roleText;
 
     void Awake() {
         // This is a SingleTON of stuff
@@ -40,12 +45,24 @@ public class GameManager : MonoBehaviour, IBtObserver {
         if (btModel != null) {
             if (next == SceneManager.GetSceneByBuildIndex(1)) { // elegant af
                 blockManager.generateGroundAheadOfPlayer = true;
+                gameIsPlaying = true;
+                scoreText = GameObject.Find("ScoreText");
+                roleText = GameObject.Find("RoleText");
             }
             if (!btModel.IsInObserverList(this)) {
                 btModel.AddObserver(this);
             }
         } else {
             
+        }
+        
+    }
+
+    void Update() {
+        if (gameIsPlaying) {
+            score = Mathf.FloorToInt(Time.timeSinceLevelLoad*4);
+            scoreText.GetComponent<Text>().text = "Score: " + score.ToString();
+            roleText.GetComponent<Text>().text = "You are the: " + playerType.ToString();
         }
         
     }
@@ -76,6 +93,14 @@ public class GameManager : MonoBehaviour, IBtObserver {
     }
     public BoyoController GetBoyoController() {
         return boyoController;
+    }
+
+    public void PlayerDied() {
+        gameIsPlaying = false;
+        SendPlayerDead(score);
+        blockManager.generateGroundAheadOfPlayer = false;
+        playerController.gameObject.SetActive(false);
+        scoreText.GetComponent<Text>().text = score.ToString();
     }
 
     // Interfaces we care about
@@ -109,7 +134,7 @@ public class GameManager : MonoBehaviour, IBtObserver {
             System.TimeSpan difference = ourDT - theirDT;
 
             float secs = difference.Seconds + (difference.Milliseconds/1000f);
-            Debug.LogWarning("LATENCY: " + secs);
+            Debug.Log("LATENCY: " + secs);
             Vector3 pos = new Vector3((float)m[2], (float)m[3], (float)m[4]);
             Vector3 vel = new Vector3((float)m[5], (float)m[6]);
 
@@ -122,7 +147,11 @@ public class GameManager : MonoBehaviour, IBtObserver {
             blockManager.GenerateGround();
         }
         if (type == "ded") {
-            // TODO kill state
+            gameIsPlaying = false;
+            score = (int) m[1];
+            blockManager.generateGroundAheadOfPlayer = false;
+            playerController.gameObject.SetActive(false);
+            scoreText.GetComponent<Text>().text = "Score: " + score.ToString();
         }
     }
 
@@ -159,8 +188,8 @@ public class GameManager : MonoBehaviour, IBtObserver {
             + pos.x + "," + pos.y + "," + pos.z + Bluetooth.MSG_SEP
             + velocity.x + "," + velocity.y);
     }
-    public void SendPlayerDead() {
-        SendMessageProper("ded");
+    public void SendPlayerDead(int score) {
+        SendMessageProper("ded" + Bluetooth.MSG_SEP + score);
     }
     public string SendMessageProper(string message) {
         return bt.Send(BluetoothModel.STARTCHAR + message + BluetoothModel.ENDCHAR);
